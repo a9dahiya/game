@@ -15,6 +15,12 @@
       justify-content: center;
       height: 100vh;
     }
+    #score {
+      font-size: 1.5em;
+      color: #d6336c;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
     canvas {
       background: #fff0f5;
       border: 4px solid #ff8da1;
@@ -31,7 +37,8 @@
   </style>
 </head>
 <body>
-  <canvas id="game" width="400" height="400"></canvas>
+  <div id="score">Score: 0</div>
+  <canvas id="game" width="300" height="300"></canvas>
   <div id="message">The more you going the more reasons i will list why i love you 💘</div>
 
   <script>
@@ -39,59 +46,63 @@
     const ctx = canvas.getContext("2d");
 
     const gridSize = 20;
-    let snake = [{ x: 160, y: 200 }];
+    let snake = [{ x: 140, y: 140 }]; // start near center of 300x300
     let dx = gridSize;
     let dy = 0;
     let heart = randomPosition();
 
-   let messages = [
-  "your tits 😳", 
-  "ur smile", 
-  "how u laugh at my dumb jokes", 
-  "u always so sweet to me fr", 
-  "how smart u r even when u act dumb", 
-  "ur beauty inside n outside", 
-  "you always got my back fr", 
-  "ur heart is too kind i swear", 
-  "ur brain is so creative", 
-  "ur vibe", 
-  "when u hug me it feel safe", 
-  "ur outfits always slay idc", 
-  "u wanna live this life w me 🥹", 
-  "u chase ur dreams like a baddie", 
-  "so confident and idk i love it", 
-  "how u love me like for real", 
-  "u never give up", 
-  "u love pretty things like me 😌", 
-  "ur music taste >>>", 
-  "when u cook or eat good food it's a vibe", 
-  "u like art and it makes u hotter", 
-  "u always down for new stuff", 
-  "u just love learning things randomly", 
-  "u forgive me even when im a mess", 
-  "ur strong as hell", 
-  "everyone loves u, u shine", 
-  "how u help me no matter what", 
-  "ur honesty even when it hurts lol", 
-  "you so loyel and real", 
-  "u never bail when it gets hard", 
-  "ur hugs r better than therapy", 
-  "when u laugh i melt", 
-  "when u just sit by me its calm", 
-  "how u hate surprises (but u cute when mad)", 
-  "u actually want me frfr", 
-  "ur snuggles = instant serotonin", 
-  "u dance and sing like nobody watching", 
-  "ur brain is a lil crazy but fun", 
-  "u read books like a cutie nerd", 
-  "u can fix anything even my heart lol", 
-  "u always try in this relationship", 
-  "u still choose me even when i suck", 
-  "when i’m down u lift me", 
-  "u love lil things like sunsets and tea", 
-  "u care when i’m sick or tired 🥺"
-];
+    let score = 0;
+    let speed = 150; // initial interval in ms
+    const minSpeed = 50; // minimum interval (max speed)
+    const speedStep = 10; // speed increase step (ms decrease) per heart eaten
 
+    let messages = [
+      "your tits 😳",
+      "ur smile",
+      "how u laugh at my dumb jokes",
+      "u always so sweet to me fr",
+      "how smart u r even when u act dumb",
+      "ur beauty inside n outside",
+      "you always got my back fr",
+      "ur heart is too kind i swear",
+      "ur brain is so creative",
+      "ur vibe",
+      "when u hug me it feel safe",
+      "ur outfits always slay idc",
+      "u wanna live this life w me 🥹",
+      "u chase ur dreams like a baddie",
+      "so confident and idk i love it",
+      "how u love me like for real",
+      "u never give up",
+      "u love pretty things like me 😌",
+      "ur music taste >>>",
+      "when u cook or eat good food it's a vibe",
+      "u like art and it makes u hotter",
+      "u always down for new stuff",
+      "u just love learning things randomly",
+      "u forgive me even when im a mess",
+      "ur strong as hell",
+      "everyone loves u, u shine",
+      "how u help me no matter what",
+      "ur honesty even when it hurts lol",
+      "you so loyel and real",
+      "u never bail when it gets hard",
+      "ur hugs r better than therapy",
+      "when u laugh i melt",
+      "when u just sit by me its calm",
+      "how u hate surprises (but u cute when mad)",
+      "u actually want me frfr",
+      "ur snuggles = instant serotonin",
+      "u dance and sing like nobody watching",
+      "ur brain is a lil crazy but fun",
+      "u read books like a cutie nerd",
+      "u can fix anything even my heart lol",
+      "u always try in this relationship",
+      "u still choose me even when i suck",
+      "when i’m down u lift me",
+      "u love lil things like sunsets and tea",
+      "u care when i’m sick or tired 🥺"
+    ];
 
     let currentMessage = "";
     let messageIndex = 0;
@@ -123,12 +134,29 @@
       snake.forEach(part => ctx.fillRect(part.x, part.y, gridSize, gridSize));
 
       // Move snake
-      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+      let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      // Teleport to other side if out of bounds (wrap-around)
+      head.x = (head.x + canvas.width) % canvas.width;
+      head.y = (head.y + canvas.height) % canvas.height;
+
+      // Check for self collision
+      if (snake.some(part => part.x === head.x && part.y === head.y)) {
+        document.getElementById("message").textContent = "You lost :(, Refresh the page!!!";
+        clearInterval(game);
+        return;
+      }
+
       snake.unshift(head);
 
       // Check for heart collision
       if (head.x === heart.x && head.y === heart.y) {
         heart = randomPosition();
+
+        // Increase score
+        score++;
+        document.getElementById("score").textContent = "Score: " + score;
+
         if (messageIndex < messages.length) {
           currentMessage = messages[messageIndex];
           messageIndex++;
@@ -136,18 +164,15 @@
           currentMessage = "I could go on forever... ❤️";
         }
         document.getElementById("message").textContent = currentMessage;
+
+        // Speed up the game by decreasing interval, but not below minSpeed
+        if (speed > minSpeed) {
+          speed -= speedStep;
+          clearInterval(game);
+          game = setInterval(draw, speed);
+        }
       } else {
         snake.pop();
-      }
-
-      // Check wall or self collision
-      if (
-        head.x < 0 || head.x >= canvas.width ||
-        head.y < 0 || head.y >= canvas.height ||
-        snake.slice(1).some(part => part.x === head.x && part.y === head.y)
-      ) {
-        document.getElementById("message").textContent = "You lost :(, Refresh the page!!!";
-        clearInterval(game);
       }
     }
 
@@ -163,7 +188,8 @@
       }
     });
 
-    const game = setInterval(draw, 150);
+    // Start game interval
+    let game = setInterval(draw, speed);
   </script>
 </body>
 </html>

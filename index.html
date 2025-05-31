@@ -12,21 +12,27 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding-top: 20px;
     }
+
     #score, #highscore {
       font-size: 1.5em;
       color: #d6336c;
       margin-bottom: 5px;
       font-weight: bold;
     }
+
     canvas {
-      background: #fff0f5;
+      width: 500px;
+      height: 500px;
       border: 4px solid #ff8da1;
       border-radius: 12px;
       box-shadow: 0 0 20px rgba(255, 0, 76, 0.2);
+      display: block;
     }
+
     #message {
       margin-top: 20px;
       font-size: 1.2em;
@@ -34,6 +40,7 @@
       text-align: center;
       max-width: 400px;
     }
+
     #restart-btn {
       display: none;
       margin-top: 18px;
@@ -48,6 +55,7 @@
       box-shadow: 0 2px 8px rgba(255, 0, 76, 0.12);
       transition: background 0.2s;
     }
+
     #restart-btn:hover {
       background: #d6336c;
     }
@@ -56,12 +64,11 @@
 <body>
   <div id="highscore">High Score: 0</div>
   <div id="score">Score: 0</div>
-  <canvas id="game" width="300" height="300"></canvas>
-  <div id="message">The more you going the more reasons i will list why i love you 💘</div>
+  <canvas id="game" width="500" height="500"></canvas>
+  <div id="message">The more you going the more reasons I will list why I love you 💘</div>
   <button id="restart-btn">Restart</button>
 
   <script>
-    // Cookie helpers
     function setCookie(name, value, days) {
       let expires = "";
       if (days) {
@@ -71,6 +78,7 @@
       }
       document.cookie = name + "=" + (value || "")  + expires + "; path=/";
     }
+
     function getCookie(name) {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
@@ -78,65 +86,32 @@
       return null;
     }
 
-    // Game constants
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const gridSize = 20;
     const minSpeed = 40;
     const speedFactor = 0.95;
 
-    // DOM elements
     const scoreDiv = document.getElementById("score");
     const highscoreDiv = document.getElementById("highscore");
     const messageDiv = document.getElementById("message");
     const restartBtn = document.getElementById("restart-btn");
 
-    // Message array and shuffle
     const originalMessages = [
-      "your tits 😳",
-      "ur smile",
-      "how u laugh at my dumb jokes",
-      "u always so sweet to me fr",
-      "how smart u r even when u act dumb",
-      "ur beauty inside n outside",
-      "you always got my back fr",
-      "ur heart is too kind i swear",
-      "ur brain is so creative",
-      "ur vibe",
-      "when u hug me it feel safe",
-      "ur outfits always slay idc",
-      "u wanna live this life w me 🥹",
-      "u chase ur dreams like a baddie",
-      "so confident and idk i love it",
-      "how u love me like for real",
-      "u never give up",
-      "u love pretty things like me 😌",
-      "ur music taste >>>",
-      "when u cook or eat good food it's a vibe",
-      "u like art and it makes u hotter",
-      "u always down for new stuff",
-      "u just love learning things randomly",
-      "u forgive me even when im a mess",
-      "ur strong as hell",
-      "everyone loves u, u shine",
-      "how u help me no matter what",
-      "ur honesty even when it hurts lol",
-      "you so loyel and real",
-      "u never bail when it gets hard",
-      "ur hugs r better than therapy",
-      "when u laugh i melt",
-      "when u just sit by me its calm",
-      "how u hate surprises (but u cute when mad)",
-      "u actually want me frfr",
-      "ur snuggles = instant serotonin",
-      "u dance and sing like nobody watching",
-      "ur brain is a lil crazy but fun",
-      "u read books like a cutie nerd",
-      "u can fix anything even my heart lol",
-      "u always try in this relationship",
-      "u still choose me even when i suck",
-      "when i’m down u lift me",
-      "u love lil things like sunsets and tea",
+      "your tits 😳", "ur smile", "how u laugh at my dumb jokes", "u always so sweet to me fr",
+      "how smart u r even when u act dumb", "ur beauty inside n outside", "you always got my back fr",
+      "ur heart is too kind i swear", "ur brain is so creative", "ur vibe", "when u hug me it feel safe",
+      "ur outfits always slay idc", "u wanna live this life w me 🥹", "u chase ur dreams like a baddie",
+      "so confident and idk i love it", "how u love me like for real", "u never give up",
+      "u love pretty things like me 😌", "ur music taste >>>", "when u cook or eat good food it's a vibe",
+      "u like art and it makes u hotter", "u always down for new stuff", "u just love learning things randomly",
+      "u forgive me even when im a mess", "ur strong as hell", "everyone loves u, u shine",
+      "how u help me no matter what", "ur honesty even when it hurts lol", "you so loyel and real",
+      "u never bail when it gets hard", "ur hugs r better than therapy", "when u laugh i melt",
+      "when u just sit by me its calm", "how u hate surprises (but u cute when mad)", "u actually want me frfr",
+      "ur snuggles = instant serotonin", "u dance and sing like nobody watching", "ur brain is a lil crazy but fun",
+      "u read books like a cutie nerd", "u can fix anything even my heart lol", "u always try in this relationship",
+      "u still choose me even when i suck", "when i’m down u lift me", "u love lil things like sunsets and tea",
       "u care when i’m sick or tired 🥺"
     ];
 
@@ -150,7 +125,6 @@
       return [first, ...rest];
     }
 
-    // Game state
     let snake, dx, dy, heart, score, speed, game, messages, messageIndex, highscore;
 
     function randomPosition() {
@@ -170,7 +144,7 @@
     }
 
     function startGame() {
-      snake = [{ x: 140, y: 140 }];
+      snake = [{ x: 240, y: 240 }];
       dx = gridSize;
       dy = 0;
       heart = randomPosition();
@@ -181,7 +155,7 @@
       highscore = parseInt(getCookie("highscore")) || 0;
       scoreDiv.textContent = "Score: 0";
       highscoreDiv.textContent = "High Score: " + highscore;
-      messageDiv.textContent = "The more you going the more reasons i will list why i love you 💘";
+      messageDiv.textContent = "The more you going the more reasons I will list why I love you 💘";
       restartBtn.style.display = "none";
       clearInterval(game);
       game = setInterval(draw, speed);
@@ -189,22 +163,14 @@
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw heart
       drawHeart(heart.x, heart.y);
-
-      // Draw snake
       ctx.fillStyle = "#ff69b4";
       snake.forEach(part => ctx.fillRect(part.x, part.y, gridSize, gridSize));
 
-      // Move snake
       let head = { x: snake[0].x + dx, y: snake[0].y + dy };
-
-      // Teleport to other side if out of bounds (wrap-around)
       head.x = (head.x + canvas.width) % canvas.width;
       head.y = (head.y + canvas.height) % canvas.height;
 
-      // Check for self collision
       if (snake.some(part => part.x === head.x && part.y === head.y)) {
         messageDiv.textContent = "";
         clearInterval(game);
@@ -219,23 +185,16 @@
 
       snake.unshift(head);
 
-      // Check for heart collision
       if (head.x === heart.x && head.y === heart.y) {
         heart = randomPosition();
-
-        // Increase score
         score++;
         scoreDiv.textContent = "Score: " + score;
-
-        // Show next message
         if (messageIndex < messages.length) {
           messageDiv.textContent = messages[messageIndex];
           messageIndex++;
         } else {
           messageDiv.textContent = "I could go on forever... ❤️";
         }
-
-        // Gradual speed up
         if (speed > minSpeed) {
           speed = Math.max(minSpeed, speed * speedFactor);
           clearInterval(game);
@@ -247,20 +206,13 @@
     }
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowUp" && dy === 0) {
-        dx = 0; dy = -gridSize;
-      } else if (e.key === "ArrowDown" && dy === 0) {
-        dx = 0; dy = gridSize;
-      } else if (e.key === "ArrowLeft" && dx === 0) {
-        dx = -gridSize; dy = 0;
-      } else if (e.key === "ArrowRight" && dx === 0) {
-        dx = gridSize; dy = 0;
-      }
+      if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -gridSize; }
+      else if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = gridSize; }
+      else if (e.key === "ArrowLeft" && dx === 0) { dx = -gridSize; dy = 0; }
+      else if (e.key === "ArrowRight" && dx === 0) { dx = gridSize; dy = 0; }
     });
 
     restartBtn.addEventListener("click", startGame);
-
-    // Start the game initially
     startGame();
   </script>
 </body>

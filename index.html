@@ -15,10 +15,10 @@
       justify-content: center;
       height: 100vh;
     }
-    #score {
+    #score, #highscore {
       font-size: 1.5em;
       color: #d6336c;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
       font-weight: bold;
     }
     canvas {
@@ -34,29 +34,65 @@
       text-align: center;
       max-width: 400px;
     }
+    #restart-btn {
+      display: none;
+      margin-top: 18px;
+      padding: 10px 24px;
+      background: #ff8da1;
+      color: white;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(255, 0, 76, 0.12);
+      transition: background 0.2s;
+    }
+    #restart-btn:hover {
+      background: #d6336c;
+    }
   </style>
 </head>
 <body>
+  <div id="highscore">High Score: 0</div>
   <div id="score">Score: 0</div>
   <canvas id="game" width="300" height="300"></canvas>
-  <div id="message">The more you go the more reasons i will list why i love you 💘</div>
+  <div id="message">The more you going the more reasons i will list why i love you 💘</div>
+  <button id="restart-btn">Restart</button>
 
   <script>
+    // Cookie helpers
+    function setCookie(name, value, days) {
+      let expires = "";
+      if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+      }
+      document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    // Game constants
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
-
     const gridSize = 20;
-    let snake = [{ x: 140, y: 140 }]; // start near center of 300x300
-    let dx = gridSize;
-    let dy = 0;
-    let heart = randomPosition();
+    const minSpeed = 40;
+    const speedFactor = 0.95;
 
-    let score = 0;
-    let speed = 150; // initial interval in ms
-    const minSpeed = 50; // minimum interval (max speed)
-    const speedStep = 10; // speed increase step (ms decrease) per heart eaten
+    // DOM elements
+    const scoreDiv = document.getElementById("score");
+    const highscoreDiv = document.getElementById("highscore");
+    const messageDiv = document.getElementById("message");
+    const restartBtn = document.getElementById("restart-btn");
 
-    let messages = [
+    // Message array and shuffle
+    const originalMessages = [
       "your tits 😳",
       "ur smile",
       "how u laugh at my dumb jokes",
@@ -104,8 +140,18 @@
       "u care when i’m sick or tired 🥺"
     ];
 
-    let currentMessage = "";
-    let messageIndex = 0;
+    function shuffleExceptFirst(array) {
+      const first = array[0];
+      const rest = array.slice(1);
+      for (let i = rest.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rest[i], rest[j]] = [rest[j], rest[i]];
+      }
+      return [first, ...rest];
+    }
+
+    // Game state
+    let snake, dx, dy, heart, score, speed, game, messages, messageIndex, highscore;
 
     function randomPosition() {
       return {
@@ -121,6 +167,24 @@
       ctx.bezierCurveTo(x, y, x, y + 15, x + 10, y + 20);
       ctx.bezierCurveTo(x + 20, y + 15, x + 20, y, x + 10, y + 5);
       ctx.fill();
+    }
+
+    function startGame() {
+      snake = [{ x: 140, y: 140 }];
+      dx = gridSize;
+      dy = 0;
+      heart = randomPosition();
+      score = 0;
+      speed = 150;
+      messages = shuffleExceptFirst([...originalMessages]);
+      messageIndex = 0;
+      highscore = parseInt(getCookie("highscore")) || 0;
+      scoreDiv.textContent = "Score: 0";
+      highscoreDiv.textContent = "High Score: " + highscore;
+      messageDiv.textContent = "The more you going the more reasons i will list why i love you 💘";
+      restartBtn.style.display = "none";
+      clearInterval(game);
+      game = setInterval(draw, speed);
     }
 
     function draw() {
@@ -142,8 +206,14 @@
 
       // Check for self collision
       if (snake.some(part => part.x === head.x && part.y === head.y)) {
-        document.getElementById("message").textContent = "You lost :(, Refresh the page!!!";
+        messageDiv.textContent = "";
         clearInterval(game);
+        if (score > highscore) {
+          highscore = score;
+          setCookie("highscore", highscore, 365);
+          highscoreDiv.textContent = "High Score: " + highscore;
+        }
+        restartBtn.style.display = "block";
         return;
       }
 
@@ -155,19 +225,19 @@
 
         // Increase score
         score++;
-        document.getElementById("score").textContent = "Score: " + score;
+        scoreDiv.textContent = "Score: " + score;
 
+        // Show next message
         if (messageIndex < messages.length) {
-          currentMessage = messages[messageIndex];
+          messageDiv.textContent = messages[messageIndex];
           messageIndex++;
         } else {
-          currentMessage = "I could go on forever... ❤️";
+          messageDiv.textContent = "I could go on forever... ❤️";
         }
-        document.getElementById("message").textContent = currentMessage;
 
-        // Speed up the game by decreasing interval, but not below minSpeed
+        // Gradual speed up
         if (speed > minSpeed) {
-          speed -= speedStep;
+          speed = Math.max(minSpeed, speed * speedFactor);
           clearInterval(game);
           game = setInterval(draw, speed);
         }
@@ -188,8 +258,10 @@
       }
     });
 
-    // Start game interval
-    let game = setInterval(draw, speed);
+    restartBtn.addEventListener("click", startGame);
+
+    // Start the game initially
+    startGame();
   </script>
 </body>
 </html>
